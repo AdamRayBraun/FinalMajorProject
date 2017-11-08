@@ -6,8 +6,6 @@
   Allen, Bruce (2009/July/23) and Gentles, Bill (2010/Nov/12)
 */
 
-
-
 // pulse input from ultrasonic range finder
 const int pwPin = 7;
 
@@ -17,7 +15,7 @@ int arraysize = 9;  //quantity of values to find the median (sample size). Needs
 //declare an array to store the samples. not necessary to zero the array values here, it just makes the code clearer
 int rangevalue[] = {  0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-long pulse;
+long pulse, inches, cm;
 
 int modE;
 
@@ -30,33 +28,28 @@ void loop() {
   pinMode(pwPin, INPUT);
 
   for (int i = 0; i < arraysize; i++) {
-
     pulse = pulseIn(pwPin, HIGH);
-
-    rangevalue[i] = pulse / 58;
-
+    rangevalue[i] = pulse;
     delay(10);
   }
 
-
-
-  Serial.print("Unsorted: ");
-
-  printArray(rangevalue, arraysize);
-
+  // Serial.print("Unsorted: ");
+  // printArray(rangevalue, arraysize);
   isort(rangevalue, arraysize);
-
-  Serial.print("Sorted: ");
-
-  printArray(rangevalue, arraysize);
-
+  // Serial.print("Sorted: ");
+  // printArray(rangevalue, arraysize);
   modE = mode(rangevalue, arraysize);
 
+  // 147uS per inch
+  inches = modE / 147;
+  cm = inches * 2.54;
+
   Serial.print("The mode/median is: ");
-
   Serial.print(modE);
-
-  Serial.println();
+  Serial.print("  inches: ");
+  Serial.print(inches);
+  Serial.print("  CM: ");
+  Serial.println(cm);
 
   delay(1000);
 
@@ -66,12 +59,9 @@ void loop() {
 //Function to print the arrays.
 void printArray(int *a, int n) {
   for (int i = 0; i < n; i++) {
-
     Serial.print(a[i], DEC);
-
     Serial.print(' ');
   }
-
   Serial.println();
 }
 
@@ -79,20 +69,11 @@ void printArray(int *a, int n) {
 void isort(int *a, int n) {
   //  *a is an array pointer function
 
-  for (int i = 1; i < n; ++i)
-
-  {
-
+  for (int i = 1; i < n; ++i) {
     int j = a[i];
-
     int k;
-
-    for (k = i - 1; (k >= 0) && (j < a[k]); k--)
-
-    {
-
+    for (k = i - 1; (k >= 0) && (j < a[k]); k--) {
       a[k + 1] = a[k];
-
     }
 
     a[k + 1] = j;
@@ -103,67 +84,39 @@ void isort(int *a, int n) {
 int mode(int *x, int n) {
 
   int i = 0;
-
   int count = 0;
-
   int maxCount = 0;
-
   int mode = 0;
-
   int bimodal;
-
   int prevCount = 0;
 
-
-
   while (i < (n - 1)) {
-
     prevCount = count;
-
     count = 0;
 
-
-
     while (x[i] == x[i + 1]) {
-
       count++;
-
       i++;
-
     }
 
-
-
     if (count > prevCount & count > maxCount) {
-
       mode = x[i];
-
       maxCount = count;
-
       bimodal = 0;
-
     }
 
     if (count == 0) {
-
       i++;
-
     }
 
     if (count == maxCount) { //If the dataset has 2 or more modes.
-
       bimodal = 1;
-
     }
 
     if (mode == 0 || bimodal == 1) { //Return the median if there is no mode.
-
       mode = x[(n / 2)];
-
     }
 
     return mode;
-
   }
-
 }
