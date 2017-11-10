@@ -13,7 +13,7 @@ long pulse, inches, cm;
 int modE;
 
 // SERVO OUTPUT
-int servoVal;
+int servoInterval;
 
 void setup() {
   Serial.begin(9600);
@@ -22,8 +22,8 @@ void setup() {
 }
 
 void loop() {
+    // INPUT SENSOR ////////////////////
   pinMode(pwPin, INPUT);
-
   for (int i = 0; i < arraysize; i++) {
     pulse = pulseIn(pwPin, HIGH);
     rangevalue[i] = pulse;
@@ -40,12 +40,19 @@ void loop() {
   Serial.print(inches);
   Serial.print("  CM: ");
   Serial.println(cm);
+  // END INPUT SENSOR ////////////////////
 
-  servoVal = map(cm, 14, 650, 0, 180); // map distance input to servo rotation
-  myservo.write(servoVal);
-  Serial.print("Servo value: ");
-  Serial.println(servoVal);
-  delay(100);
+  // HAPTIC OUTPUT ///////////////////////
+  servoInterval = map(cm, 5, 650, 100, 1000); // map distance input to interval between servo movements
+  myservo.write(5);
+  delay(servoInterval);
+  myservo.write(175);
+  delay(servoInterval - 10); // - 10 is componsating for above 10ms delay in sensor reading for looop
+
+  Serial.print("Servo interval value: ");
+  Serial.println(servoInterval);
+
+  // END HAPTIC OUTPUT ///////////////////////
 }
 
 
