@@ -24,7 +24,7 @@ void loop() {
 
       // play the effect!
       drv.go();
-      delay(300);
+      delay(1000);
     }
 
   delay(1500);

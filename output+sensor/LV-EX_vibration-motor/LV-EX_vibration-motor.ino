@@ -46,10 +46,12 @@ void loop() {
   distanceValue = map(cm, 0, 650, 0, 100);
 
   if (distanceValue >= 0 && distanceValue < 10 ) {
-      effect = 64;
+      effect = 91;
   } else if (distanceValue >= 10 && distanceValue < 20 ) {
+      effect = 64;
+  } else if (distanceValue >= 20 && distanceValue < 30 ) {
       effect = 65;
-  } else if (distanceValue >= 20 && distanceValue < 40 ) {
+  } else if (distanceValue >= 30 && distanceValue < 40 ) {
       effect = 66;
   } else if (distanceValue >= 40 && distanceValue < 60 ) {
       effect = 67;
