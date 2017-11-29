@@ -1,4 +1,4 @@
-const int motorPin = 3;
+const int motorPin = 5;
 
 void setup() {
     Serial.begin(9600);
@@ -12,6 +12,7 @@ void loop() {
         Serial.print("Pulse val: ");
         Serial.println(x);
         delay(10);
+    };
 
     analogWrite(motorPin, 0);
     delay(3000);
