@@ -1,4 +1,21 @@
-int motorPin[] = {5,6,9,10,11};
+struct motor {
+    int pin;
+    int Lower_placement;
+    int Upper_placement;
+    int motorStrength;
+};
+
+// Value 0 = GPIO pin
+// value 1 = arbitrary lower distance each motor gives feedback for
+// value 2 = arbitrary upper distance each motor gives feedback for
+// Value 3 = empty at first then continuosly populated with strength of each motor
+struct motor MotorData[] = {{ 5, 0, 75, 0 },
+                            { 6, 25, 140, 0 },
+                            { 9, 90, 280, 0 },
+                            { 10, 230, 450, 0 },
+                            { 11, 400, 650, 0 }
+                        };
+
 const int distanceSensorPin = 3;
 
 // LV-EZ INPUT
@@ -11,7 +28,7 @@ void setup() {
     Serial.begin(9600);
 
     for (int x = 0; x < 5; x++) {
-        pinMode(motorPin[x], OUTPUT);
+        pinMode(MotorData[x].pin, OUTPUT);
     };
 
     pinMode(distanceSensorPin, INPUT);
@@ -20,34 +37,44 @@ void setup() {
 void loop() {
 
     // INPUT SENSOR ////////////////////
-    pinMode(pwPin, INPUT);
+    pinMode(distanceSensorPin, INPUT);
     for (int i = 0; i < arraysize; i++) {
-      pulse = pulseIn(pwPin, HIGH);
+      pulse = pulseIn(distanceSensorPin, HIGH);
       rangevalue[i] = pulse;
       delay(10);
     }
-
     isort(rangevalue, arraysize);
     modE = mode(rangevalue, arraysize);
     // 147uS per inch
     inches = modE / 147;
     cm = inches * 2.54;
-
-    Serial.print("Distance in CM: ");
-    Serial.println(cm);
+    Serial.print("Dist CM: ");
+    Serial.print(cm);
     // END INPUT SENSOR ////////////////////
 
 
+    Serial.print(" Motor strengths: (");
 
     for (int x = 0; x < 5; x ++) {
-        analogWrite(motorPin[x], 153);
-        Serial.print("Pulse sent to motor: ");
-        Serial.println(x);
-        delay(2000);
-        analogWrite(motorPin[x], 0);
-        delay(500);
+
+        // if distance is within bounds of the motor
+        if (cm < MotorData[x].Upper_placement && cm > MotorData[x].Lower_placement) {
+
+            // map (distance from position to each motor) to (strength of each motor)
+            MotorData[x].motorStrength = map(cm, MotorData[x].Lower_placement, MotorData[x].Upper_placement, 0, 153);
+        }
+        else {
+            MotorData[x].motorStrength = 0;
+        }
+
+        // Send each motors it's new strentgh based on distance
+        analogWrite(MotorData[x].pin, MotorData[x].motorStrength);
+
+        Serial.print(MotorData[x].motorStrength);
+        Serial.print(" ");
     };
-    delay(3000);
+
+    Serial.println(")");
 }
 
 
@@ -59,21 +86,18 @@ void loop() {
 // sort function (Author: Bill Gentles, Nov. 12, 2010)
 void isort(int *a, int n) {
   //  *a is an array pointer function
-
   for (int i = 1; i < n; ++i) {
     int j = a[i];
     int k;
     for (k = i - 1; (k >= 0) && (j < a[k]); k--) {
       a[k + 1] = a[k];
     }
-
     a[k + 1] = j;
   }
 }
 
-//Mode function, returning the mode or median.
+//Mode function, returning the mode
 int mode(int *x, int n) {
-
   int i = 0;
   int count = 0;
   int maxCount = 0;
@@ -84,30 +108,24 @@ int mode(int *x, int n) {
   while (i < (n - 1)) {
     prevCount = count;
     count = 0;
-
     while (x[i] == x[i + 1]) {
       count++;
       i++;
     }
-
     if (count > prevCount & count > maxCount) {
       mode = x[i];
       maxCount = count;
       bimodal = 0;
     }
-
     if (count == 0) {
       i++;
     }
-
     if (count == maxCount) { //If the dataset has 2 or more modes.
       bimodal = 1;
     }
-
     if (mode == 0 || bimodal == 1) { //Return the median if there is no mode.
       mode = x[(n / 2)];
     }
-
     return mode;
   }
 }
