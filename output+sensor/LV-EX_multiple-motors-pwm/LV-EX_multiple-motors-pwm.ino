@@ -24,8 +24,16 @@ int rangevalue[] = {  0, 0, 0, 0, 0, 0, 0, 0, 0};
 long pulse, inches, cm;
 int modE;
 
+// Processing communication
+bool PROCESSING_DATA_VIS = true;
+char processing_command;
+
 void setup() {
     Serial.begin(9600);
+
+    if (PROCESSING_DATA_VIS == true) {
+        establishContact();
+    }
 
     for (int x = 0; x < 5; x++) {
         pinMode(MotorData[x].pin, OUTPUT);
@@ -36,7 +44,7 @@ void setup() {
 
 void loop() {
 
-    // INPUT SENSOR ////////////////////
+        // INPUT SENSOR ////////////////////
     pinMode(distanceSensorPin, INPUT);
     for (int i = 0; i < arraysize; i++) {
       pulse = pulseIn(distanceSensorPin, HIGH);
@@ -48,13 +56,14 @@ void loop() {
     // 147uS per inch
     inches = modE / 147;
     cm = inches * 2.54;
-    Serial.print("Dist CM: ");
-    Serial.print(cm);
-    // END INPUT SENSOR ////////////////////
+    // Serial.print("Dist CM: ");
+    // Serial.print(cm);
+        // END INPUT SENSOR ////////////////////
 
 
-    Serial.print(" Motor strengths: (");
+    // Serial.print(" Motor strengths: (");
 
+    // for each motor TODO change to length of motors in struct
     for (int x = 0; x < 5; x ++) {
 
         // if distance is within bounds of the motor
@@ -70,16 +79,40 @@ void loop() {
         // Send each motors it's new strentgh based on distance
         analogWrite(MotorData[x].pin, MotorData[x].motorStrength);
 
-        Serial.print(MotorData[x].motorStrength);
-        Serial.print(" ");
+        // Serial.print(MotorData[x].motorStrength);
+        // Serial.print(" ");
+
+
+
+
     };
 
-    Serial.println(")");
+    if (PROCESSING_DATA_VIS == true) {
+        // if data is available to read
+        if (Serial.available() > 0) {
+            processing_command = Serial.read();
+
+            if (processing_command == '1') {
+                ; // do something
+            }
+            delay(100);
+        }
+        // else send motor data
+        else {
+            Serial.println("motor DATA");
+            delay(50);
+        }
+    }
 }
 
 
-
-
+// establish data contact with processing_command
+void establishContact() {
+    while (Serial.available() <= 0) {
+        Serial.println("Marco");
+        delay(300);
+    }
+}
 
 
 
