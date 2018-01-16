@@ -41,8 +41,6 @@ void serialEvent( Serial myPort) {
         // if already made first contact
         else {
             println(val);
-
-
         }
     }
 }

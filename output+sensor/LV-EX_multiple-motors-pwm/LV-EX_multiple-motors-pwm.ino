@@ -60,9 +60,6 @@ void loop() {
     // Serial.print(cm);
         // END INPUT SENSOR ////////////////////
 
-
-    // Serial.print(" Motor strengths: (");
-
     // for each motor TODO change to length of motors in struct
     for (int x = 0; x < 5; x ++) {
 
@@ -81,10 +78,6 @@ void loop() {
 
         // Serial.print(MotorData[x].motorStrength);
         // Serial.print(" ");
-
-
-
-
     };
 
     if (PROCESSING_DATA_VIS == true) {
@@ -99,7 +92,17 @@ void loop() {
         }
         // else send motor data
         else {
-            Serial.println("motor DATA");
+            Serial.print("CM: ");
+            Serial.print(cm);
+            Serial.print(" Motor Strength: ");
+            for (int x = 0; x < 5; x++) {
+                Serial.print(MotorData[x].motorStrength);
+                if (x != 4) {
+                    Serial.print(",");
+                }
+            }
+            Serial.println(" ");
+
             delay(50);
         }
     }
@@ -109,7 +112,7 @@ void loop() {
 // establish data contact with processing_command
 void establishContact() {
     while (Serial.available() <= 0) {
-        Serial.println("Marco");
+        Serial.println("A");
         delay(300);
     }
 }
