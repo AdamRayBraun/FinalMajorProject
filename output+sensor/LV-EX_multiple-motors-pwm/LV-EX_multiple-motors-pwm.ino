@@ -92,9 +92,7 @@ void loop() {
         }
         // else send motor data
         else {
-            Serial.print("CM: ");
             Serial.print(cm);
-            Serial.print(" Motor Strength: ");
             for (int x = 0; x < 5; x++) {
                 Serial.print(MotorData[x].motorStrength);
                 if (x != 4) {
