@@ -1,15 +1,15 @@
-int motorPin[] = {5,6,9,10,11};
+int motorPin[] = {5,6,9,10};
 
 void setup() {
     Serial.begin(9600);
-    for (int x = 0; x < 5; x++) {
+    for (int x = 0; x < 4; x++) {
         pinMode(motorPin[x], OUTPUT);
     };
 }
 
 void loop() {
 
-    for (int x = 0; x < 5; x ++) {
+    for (int x = 0; x < 4; x ++) {
         analogWrite(motorPin[x], 153);
         Serial.print("Pulse sent to motor: ");
         Serial.println(x);
