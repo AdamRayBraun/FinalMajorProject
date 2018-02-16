@@ -5,15 +5,15 @@ struct motor {
 };
 
 // Value 0 = GPIO pin
-struct motor MotorData[] = {{ 5 },
+struct motor MotorData[] = {{ 3 },
+                            { 5 },
                             { 6 },
                             { 9 },
-                            { 10 },
-                            { 11 }
+                            { 10 }
                         };
 
 
-IRrecvPCI myReceiver(3);
+IRrecvPCI myReceiver(2);
 IRdecode myDecoder;
 
 // Processing communication
@@ -61,10 +61,26 @@ void loop() {
 
 void shortPositive() {
     Serial.println("1 pressed");
+
+    for (int x = 0; x < 5; x++) {
+        Serial.println("Pulse sent to motor: " + x);
+        analogWrite(MotorData[x].pin, 153);
+        delay(2000);
+        analogWrite(MotorData[x].pin, 0);
+        delay(1000);
+    }
 }
 
 void shortNegative() {
     Serial.println("2 pressed");
+
+    for (int x = 0; x < 5; x++) {
+        Serial.println("Pulse sent to motor: " + x);
+        analogWrite(MotorData[x].pin, 255);
+        delay(2000);
+        analogWrite(MotorData[x].pin, 0);
+        delay(1000);
+    }
 }
 
 void longPositive() {
