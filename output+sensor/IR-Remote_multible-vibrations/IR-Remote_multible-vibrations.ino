@@ -1,18 +1,14 @@
 #include "IRLibAll.h"
+#include "motor.h"
+#include "motor.cpp"
 
-struct motor {
-    int pin;
-};
+/// Dont forget counting starts at 0!!!
+const int total_motors = 4;
 
-// Value 0 = GPIO pin
-struct motor MotorData[] = {{ 3 },
-                            { 5 },
-                            { 6 },
-                            { 9 },
-                            { 10 }
-                        };
+// initiate motors passing each motor's pin
+VibrationMotor motors[total_motors];
 
-
+// IR remote set up
 IRrecvPCI myReceiver(2);
 IRdecode myDecoder;
 
@@ -24,15 +20,19 @@ void setup() {
   Serial.begin(9600);
   delay(2000); while (!Serial); //delay for Leonardo
 
+  // for communication with processing
   if (PROCESSING_DATA_VIS == true) {
       establishContact();
   }
 
   myReceiver.enableIRIn(); // Start the receiver
 
-  for (int x = 0; x < 5; x++) {
-      pinMode(MotorData[x].pin, OUTPUT);
-  };
+  motors[0].MotorPin = 3;
+  motors[1].MotorPin = 5;
+  motors[2].MotorPin = 6;
+  motors[3].MotorPin = 9;
+  motors[4].MotorPin = 10;
+
 }
 
 void loop() {
@@ -42,15 +42,19 @@ void loop() {
     if (myDecoder.protocolNum == NEC) {
         switch(myDecoder.value) {
             case 0xFF30CF:
+                // button 1 on remote
                 shortPositive();
                 break;
             case 0xFF18E7:
+                // button 2 on remote
                 shortNegative();
                 break;
             case 0xFF7A85:
+                // button 3 on remote
                 longPositive();
                 break;
             case 0xFF10EF:
+                // button 4 on remote
                 longNegative();
                 break;
         }
@@ -62,25 +66,17 @@ void loop() {
 void shortPositive() {
     Serial.println("1 pressed");
 
-    for (int x = 0; x < 5; x++) {
-        Serial.println("Pulse sent to motor: " + x);
-        analogWrite(MotorData[x].pin, 153);
-        delay(2000);
-        analogWrite(MotorData[x].pin, 0);
-        delay(1000);
+    for (int x = 0; x <= total_motors; x++) {
+        motors[x].ToggleStrength(153);
+    }
+    delay(2000);
+    for (int x = 0; x <= total_motors; x++) {
+        motors[x].ToggleStrength(0);
     }
 }
 
 void shortNegative() {
     Serial.println("2 pressed");
-
-    for (int x = 0; x < 5; x++) {
-        Serial.println("Pulse sent to motor: " + x);
-        analogWrite(MotorData[x].pin, 255);
-        delay(2000);
-        analogWrite(MotorData[x].pin, 0);
-        delay(1000);
-    }
 }
 
 void longPositive() {
