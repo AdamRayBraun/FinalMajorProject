@@ -1,21 +1,29 @@
 #include "IRLibAll.h"
 #include "motor.h"
 
+// TODO should recognise if serial connection is lost so it tries to establish
+// connection again
+
+
 /// Dont forget counting starts at 0!!!
 const int total_motors = 4;
 
 // initiate motors passing each motor's pin
 VibrationMotor motors[total_motors];
 
-// VibrationMotor motor;
-
 // IR remote set up
 IRrecvPCI myReceiver(2);
 IRdecode myDecoder;
 
 // Processing communication
-bool PROCESSING_DATA_VIS = false;
+bool PROCESSING_DATA_VIS = true;
 char processing_command;
+
+
+// loop Variables
+unsigned long previousTime = 0;
+int pulseLength = 2000;
+
 
 void setup() {
   Serial.begin(9600);
@@ -28,17 +36,82 @@ void setup() {
 
   myReceiver.enableIRIn(); // Start the receiver
 
+  // setup pinouts on each motor object
   motors[0].setup(3);
   motors[1].setup(5);
   motors[2].setup(6);
   motors[3].setup(9);
   motors[4].setup(10);
-
 }
 
 void loop() {
   //Continue looping until you get a complete signal received
   if (myReceiver.getResults()) {
+    remoteHandler();
+    }
+
+  if (PROCESSING_DATA_VIS == true) {
+    procesingHandler();
+    }
+
+  for (int x = 0; x < 5; x++) {
+      motors[x].update();
+  }
+}
+
+
+void shortPositive() {
+    if (PROCESSING_DATA_VIS == false) {
+        Serial.println("1 pressed");
+    }
+    for (int x = 0; x <= total_motors; x++) {
+        motors[x].Pulse(153,2000);
+    }
+}
+
+void shortNegative() {
+    if (PROCESSING_DATA_VIS == false) {
+        Serial.println("2 pressed");
+    }
+}
+
+void longPositive() {
+    if (PROCESSING_DATA_VIS == false) {
+        Serial.println("3 pressed");
+    }
+}
+
+void longNegative() {
+    if (PROCESSING_DATA_VIS == false) {
+        Serial.println("4 pressed");
+    }
+}
+
+void procesingHandler() {
+    // if data is available to read
+    if (Serial.available() > 0) {
+        processing_command = Serial.read();
+
+        if (processing_command == '1') {
+            ; // do something
+        }
+        delay(100);
+    }
+    // else send motor data
+    else {
+        for (int x = 0; x < 5; x++) {
+            Serial.print(motors[x].strength);
+            if (x != 4) {
+                Serial.print(",");
+            }
+        }
+        Serial.println(" ");
+
+        delay(50);
+    }
+}
+
+void remoteHandler() {
     myDecoder.decode();           //Decode it
     if (myDecoder.protocolNum == NEC) {
         switch(myDecoder.value) {
@@ -60,32 +133,7 @@ void loop() {
                 break;
         }
     }
-    myReceiver.enableIRIn(); //Restart receiver
-  }
-}
-
-void shortPositive() {
-    Serial.println("1 pressed");
-
-    for (int x = 0; x <= total_motors; x++) {
-        motors[x].ToggleStrength(153);
-    }
-    delay(2000);
-    for (int x = 0; x <= total_motors; x++) {
-        motors[x].ToggleStrength(0);
-    }
-}
-
-void shortNegative() {
-    Serial.println("2 pressed");
-}
-
-void longPositive() {
-    Serial.println("3 pressed");
-}
-
-void longNegative() {
-    Serial.println("4 pressed");
+    myReceiver.enableIRIn(); //Restart IR receiver
 }
 
 // establish data contact with processing_command

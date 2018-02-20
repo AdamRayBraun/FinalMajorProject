@@ -10,7 +10,12 @@ class VibrationMotor {
         // VibrationMotor();
         int MotorPin;
         int strength;        // stores strength of each motor 0 - 153
+        int LengthOfPulse;
+        int PrePulseStrength;
+        String currentFunction = "none"; // none / pulse / vibeUp / vibeDown
+        unsigned long startTime;
         void setup(int pin);
+        void update();
         void ToggleStrength(int newStrength);
         void IncreaseVibration(
                         int startingStrength,

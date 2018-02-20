@@ -10,10 +10,19 @@ void VibrationMotor::setup(int pin) {
     this->MotorPin = pin;
 }
 
+void VibrationMotor::update() {
+    if (this->currentFunction == "pulse") {
+        if ((millis() - this->startTime) >= this->LengthOfPulse) {
+            analogWrite(MotorPin, this->PrePulseStrength);
+            this->strength = this->PrePulseStrength;
+            this->currentFunction = "none";
+        }
+    }
+}
+
 void VibrationMotor::ToggleStrength(int newStrength) {
     if (newStrength > 153) {
         newStrength = 153;
-        Serial.println("ERR: strength over 153 sent to motor");
     }
 
     analogWrite(MotorPin, newStrength);
@@ -46,10 +55,15 @@ void VibrationMotor::DecreaseVibtration(
 
 void VibrationMotor::Pulse(
                         int pulseStrength,
-                        int pulseDelay)
+                        int pulseLength)
                         {
+    this->currentFunction = "pulse";
+    this->PrePulseStrength = this->strength;
+    this->LengthOfPulse = pulseLength;
+    this->strength = pulseStrength;
+    this->startTime = millis();
+
     analogWrite(MotorPin, pulseStrength);
-    delay(pulseDelay);
 }
 
 void VibrationMotor::GetStrength() {
