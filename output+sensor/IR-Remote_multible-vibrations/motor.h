@@ -7,9 +7,10 @@
 
 class VibrationMotor {
     public:
-        VibrationMotor();
+        // VibrationMotor();
         int MotorPin;
-        int strength = 0;        // stores strength of each motor 0 - 153
+        int strength;        // stores strength of each motor 0 - 153
+        void setup(int pin);
         void ToggleStrength(int newStrength);
         void IncreaseVibration(
                         int startingStrength,

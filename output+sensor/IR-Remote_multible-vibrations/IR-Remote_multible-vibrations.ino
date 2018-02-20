@@ -1,12 +1,13 @@
 #include "IRLibAll.h"
 #include "motor.h"
-#include "motor.cpp"
 
 /// Dont forget counting starts at 0!!!
 const int total_motors = 4;
 
 // initiate motors passing each motor's pin
 VibrationMotor motors[total_motors];
+
+// VibrationMotor motor;
 
 // IR remote set up
 IRrecvPCI myReceiver(2);
@@ -27,11 +28,11 @@ void setup() {
 
   myReceiver.enableIRIn(); // Start the receiver
 
-  motors[0].MotorPin = 3;
-  motors[1].MotorPin = 5;
-  motors[2].MotorPin = 6;
-  motors[3].MotorPin = 9;
-  motors[4].MotorPin = 10;
+  motors[0].setup(3);
+  motors[1].setup(5);
+  motors[2].setup(6);
+  motors[3].setup(9);
+  motors[4].setup(10);
 
 }
 

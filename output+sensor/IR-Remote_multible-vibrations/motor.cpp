@@ -1,10 +1,13 @@
 #include "motor.h"
+#include <Arduino.h>
 
-VibrationMotor::VibrationMotor() {
-    pinMode(this->MotorPin, OUTPUT);
-}
+// VibrationMotor::VibrationMotor() {
+//     pinMode(this->MotorPin, OUTPUT);
+// }
 
-VibrationMotor::~VibrationMotor(){
+void VibrationMotor::setup(int pin) {
+    pinMode(pin, OUTPUT);
+    this->MotorPin = pin;
 }
 
 void VibrationMotor::ToggleStrength(int newStrength) {
