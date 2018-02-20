@@ -24,6 +24,7 @@ char processing_command;
 unsigned long previousTime = 0;
 int pulseLength = 2000;
 
+String vibration = "none";
 
 void setup() {
   Serial.begin(9600);
@@ -54,9 +55,9 @@ void loop() {
     procesingHandler();
     }
 
-  for (int x = 0; x < 5; x++) {
-      motors[x].update();
-  }
+  if (vibration != "none") {
+      vibrationHandler();
+    }
 }
 
 
@@ -87,6 +88,30 @@ void longNegative() {
     }
 }
 
+// handles different looping logic for each vibration
+void vibrationHandler() {
+    if (vibration == "shortPositive") {
+        for (int x = 0; x <= total_motors; x++) {
+            motors[x].update();
+        }
+    }
+    else if (vibration == "shortNegative") {
+        for (int x = 0; x <= total_motors; x++) {
+            if (motors[x].strength > 0) {
+                motors[x].ToggleStrength(0);
+
+                int next_motor = x + 1;
+                if (next_motor >= total_motors){
+                    next_motor -= total_motors;
+                }
+                motors[next_motor].ToggleStrength(153);
+
+                break;
+            }
+        }
+    }
+}
+
 void procesingHandler() {
     // if data is available to read
     if (Serial.available() > 0) {
@@ -94,18 +119,19 @@ void procesingHandler() {
 
         if (processing_command == '1') {
             ; // do something
+
         }
         delay(100);
     }
     // else send motor data
     else {
-        for (int x = 0; x < 5; x++) {
+        for (int x = 0; x <= total_motors; x++) {
             Serial.print(motors[x].strength);
             if (x != 4) {
                 Serial.print(",");
             }
         }
-        Serial.println(" ");
+        Serial.println(",");
 
         delay(50);
     }
@@ -118,18 +144,19 @@ void remoteHandler() {
             case 0xFF30CF:
                 // button 1 on remote
                 shortPositive();
+                vibration = "shortPositive";
                 break;
             case 0xFF18E7:
                 // button 2 on remote
-                shortNegative();
+                vibration = "shortNegative";
                 break;
             case 0xFF7A85:
                 // button 3 on remote
-                longPositive();
+                vibration = "longPositive";
                 break;
             case 0xFF10EF:
                 // button 4 on remote
-                longNegative();
+                vibration = "longNegative";
                 break;
         }
     }
