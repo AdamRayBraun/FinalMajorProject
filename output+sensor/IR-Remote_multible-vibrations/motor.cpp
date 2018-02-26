@@ -5,6 +5,8 @@
 //     pinMode(this->MotorPin, OUTPUT);
 // }
 
+long startTime;
+
 void VibrationMotor::setup(int pin) {
     pinMode(pin, OUTPUT);
     this->MotorPin = pin;
@@ -12,9 +14,10 @@ void VibrationMotor::setup(int pin) {
 
 void VibrationMotor::update() {
     if (this->currentFunction == "pulse") {
-        if ((millis() - this->startTime) >= this->LengthOfPulse) {
-            analogWrite(MotorPin, this->PrePulseStrength);
-            this->strength = this->PrePulseStrength;
+        // turns motor off after length of pulse
+        if ((millis() - startTime) >= this->LengthOfPulse) {
+            analogWrite(MotorPin, 0);
+            this->strength = 0;
             this->currentFunction = "none";
         }
     }
@@ -61,7 +64,7 @@ void VibrationMotor::Pulse(
     this->PrePulseStrength = this->strength;
     this->LengthOfPulse = pulseLength;
     this->strength = pulseStrength;
-    this->startTime = millis();
+    startTime = millis();
 
     analogWrite(MotorPin, pulseStrength);
 }

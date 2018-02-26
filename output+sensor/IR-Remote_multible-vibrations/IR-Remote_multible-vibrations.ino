@@ -1,8 +1,12 @@
 #include "IRLibAll.h"
 #include "motor.h"
 
-// TODO should recognise if serial connection is lost so it tries to establish
-// connection again
+/* TODO
+-should recognise if serial connection is lost so it tries to establish
+  connection again
+
+
+*/
 
 
 /// Dont forget counting starts at 0!!!
@@ -24,7 +28,7 @@ char processing_command;
 unsigned long previousTime = 0;
 int pulseLength = 2000;
 
-String vibration = "none";
+int vibrationMode = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -38,15 +42,23 @@ void setup() {
   myReceiver.enableIRIn(); // Start the receiver
 
   // setup pinouts on each motor object
-  motors[0].setup(3);
-  motors[1].setup(5);
-  motors[2].setup(6);
-  motors[3].setup(9);
-  motors[4].setup(10);
+  // motors[0].setup(3);
+  // motors[1].setup(5);
+  // motors[2].setup(6);
+  // motors[3].setup(9);
+  // motors[4].setup(10);
+
+
+  // TEMPORARY UNO PINOUTS because scott blew up my arduino micro
+  motors[0].setup(5);
+  motors[1].setup(9);
+  motors[2].setup(10);
+  motors[3].setup(6);
+  motors[4].setup(11);
 }
 
 void loop() {
-  //Continue looping until you get a complete signal received
+    // IR reciever
   if (myReceiver.getResults()) {
     remoteHandler();
     }
@@ -54,8 +66,13 @@ void loop() {
   if (PROCESSING_DATA_VIS == true) {
     procesingHandler();
     }
+  else if (PROCESSING_DATA_VIS == false) {
+      // printing straight to serial monitor for debugging
 
-  if (vibration != "none") {
+      Serial.println(vibrationMode);
+  }
+
+  if (vibrationMode != 0) {
       vibrationHandler();
     }
 }
@@ -90,12 +107,13 @@ void longNegative() {
 
 // handles different looping logic for each vibration
 void vibrationHandler() {
-    if (vibration == "shortPositive") {
+    if (vibrationMode == 1) {
         for (int x = 0; x <= total_motors; x++) {
             motors[x].update();
         }
+        // vibrationMode = 0;
     }
-    else if (vibration == "shortNegative") {
+    else if (vibrationMode == 2) {
         for (int x = 0; x <= total_motors; x++) {
             if (motors[x].strength > 0) {
                 motors[x].ToggleStrength(0);
@@ -110,6 +128,12 @@ void vibrationHandler() {
             }
         }
     }
+    else if (vibrationMode == 4) {
+        for (int x = 0; x <= total_motors; x++) {
+            motors[x].ToggleStrength(0);
+        }
+        vibrationMode = 0;
+    }
 }
 
 void procesingHandler() {
@@ -119,7 +143,6 @@ void procesingHandler() {
 
         if (processing_command == '1') {
             ; // do something
-
         }
         delay(100);
     }
@@ -127,11 +150,9 @@ void procesingHandler() {
     else {
         for (int x = 0; x <= total_motors; x++) {
             Serial.print(motors[x].strength);
-            if (x != 4) {
-                Serial.print(",");
-            }
+            Serial.print(",");
         }
-        Serial.println(",");
+        Serial.println(vibrationMode);
 
         delay(50);
     }
@@ -143,20 +164,20 @@ void remoteHandler() {
         switch(myDecoder.value) {
             case 0xFF30CF:
                 // button 1 on remote
+                vibrationMode = 1;
                 shortPositive();
-                vibration = "shortPositive";
                 break;
             case 0xFF18E7:
                 // button 2 on remote
-                vibration = "shortNegative";
+                vibrationMode = 2;
                 break;
             case 0xFF7A85:
                 // button 3 on remote
-                vibration = "longPositive";
+                vibrationMode = 3;
                 break;
             case 0xFF10EF:
                 // button 4 on remote
-                vibration = "longNegative";
+                vibrationMode = 4;
                 break;
         }
     }

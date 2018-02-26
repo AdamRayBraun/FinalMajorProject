@@ -18,6 +18,8 @@ boolean firstContact = false;
 int[] ArduinoData;
 int[] MotorData = {0,0,0,0,0};
 
+int vibrationMode;
+
 void setup() {
 
     size(1000, 700);
@@ -48,32 +50,46 @@ void draw() {
 }
 
 void serialEvent( Serial myPort) {
+    try {
+        val = myPort.readStringUntil('\n');
 
-    val = myPort.readStringUntil('\n');
+        if (val != null) {
+            val = trim(val);
+            // print raw data recieved
+            // println(val);
 
-    if (val != null) {
-        val = trim(val);
-        // print raw data recieved
-        println(val);
-
-        // listen for first contact from arduino
-        if (firstContact == false) {
-            if (val.equals("A")) {
-                myPort.clear();
-                firstContact = true;
-                myPort.write("A");
-                println("CONTACT MADE");
+            // listen for first contact from arduino
+            if (firstContact == false) {
+                if (val.equals("A")) {
+                    myPort.clear();
+                    firstContact = true;
+                    myPort.write("A");
+                    println("CONTACT MADE");
+                }
             }
-        }
-        // if already made first contact
-        else {
+            // if already made first contact
+            else {
 
-            //Parse sent ints after each comma
-            ArduinoData = int(split(val, ","));
+                //Parse sent ints after each comma
+                ArduinoData = int(split(val, ","));
 
-            for (int x = 0; x < MotorData.length; x++) {
-                MotorData[x] = ArduinoData[x];
+                for (int x = 0; x < 5; x++) {
+                    MotorData[x] = ArduinoData[x];
+                }
+
+                // last int represents current vibration mode
+                vibrationMode = ArduinoData[5];
             }
+            print("Motor values: ");
+            for (int x=0; x<5; x++) {
+                print(MotorData[x]);
+                print(",");
+            }
+            print(" Vibration Mode: ");
+            println(vibrationMode);
         }
+    }
+    catch (Exception e) {
+        println(e);
     }
 }
