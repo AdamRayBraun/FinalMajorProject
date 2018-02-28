@@ -4,8 +4,6 @@
 /* TODO
 -should recognise if serial connection is lost so it tries to establish
   connection again
-
-
 */
 
 
@@ -42,19 +40,11 @@ void setup() {
   myReceiver.enableIRIn(); // Start the receiver
 
   // setup pinouts on each motor object
-  // motors[0].setup(3);
-  // motors[1].setup(5);
-  // motors[2].setup(6);
-  // motors[3].setup(9);
-  // motors[4].setup(10);
-
-
-  // TEMPORARY UNO PINOUTS because scott blew up my arduino micro
-  motors[0].setup(5);
-  motors[1].setup(9);
-  motors[2].setup(10);
-  motors[3].setup(6);
-  motors[4].setup(11);
+  motors[0].setup(3);
+  motors[1].setup(5);
+  motors[2].setup(6);
+  motors[3].setup(9);
+  motors[4].setup(10);
 }
 
 void loop() {
