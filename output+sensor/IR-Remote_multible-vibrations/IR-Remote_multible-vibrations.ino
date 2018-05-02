@@ -6,21 +6,24 @@
   connection again
 */
 
-
+/* VARIABLES TO SOMETIMES CHANGE */
 /// Dont forget counting starts at 0!!!
-const int total_motors = 4;
+const int total_motors = 3;
 
+bool PROCESSING_DATA_VIS = false;
+
+const int IR_pin = 8;
+
+/* CONSTANT VARIABLES */
 // initiate motors passing each motor's pin
 VibrationMotor motors[total_motors];
 
 // IR remote set up
-IRrecvPCI myReceiver(2);
+IRrecvPCI myReceiver(IR_pin);
 IRdecode myDecoder;
 
 // Processing communication
-bool PROCESSING_DATA_VIS = true;
 char processing_command;
-
 
 // loop Variables
 unsigned long previousTime = 0;
@@ -44,7 +47,6 @@ void setup() {
   motors[1].setup(5);
   motors[2].setup(6);
   motors[3].setup(9);
-  motors[4].setup(10);
 }
 
 void loop() {

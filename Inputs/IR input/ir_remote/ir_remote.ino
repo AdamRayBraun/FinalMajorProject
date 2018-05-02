@@ -1,7 +1,7 @@
 #include "IRLibAll.h"
 
 //Create a receiver object to listen on pin 2
-IRrecvPCI myReceiver(3);
+IRrecvPCI myReceiver(8);
 
 //Create a decoder object
 IRdecode myDecoder;
