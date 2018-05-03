@@ -1,5 +1,6 @@
 #include "IRLibAll.h"
 #include "motor.h"
+#include "soundboard.h"
 
 /* TODO
 -should recognise if serial connection is lost so it tries to establish
@@ -8,7 +9,13 @@
 
 /* VARIABLES TO SOMETIMES CHANGE */
 /// Dont forget counting starts at 0!!!
-const int total_motors = 3;
+const int total_motors = 4;
+
+const int total_soundBoards = 1;
+
+// Soundboard pins starting with RST then T00 through to T10
+const int SB_TRANSDUCER_pins[] = {27,   29,31,33,35,37,39,41,43,45,47,49};
+const int SB_SUB_pins[] =        {44,   42,40,38,36,34,32,30,28,26,24,22};
 
 bool PROCESSING_DATA_VIS = false;
 
@@ -17,6 +24,9 @@ const int IR_pin = 8;
 /* CONSTANT VARIABLES */
 // initiate motors passing each motor's pin
 VibrationMotor motors[total_motors];
+
+// Initiate SoundBoards
+SoundBoard SB[total_soundBoards];
 
 // IR remote set up
 IRrecvPCI myReceiver(IR_pin);
@@ -43,10 +53,15 @@ void setup() {
   myReceiver.enableIRIn(); // Start the receiver
 
   // setup pinouts on each motor object
-  motors[0].setup(3);
-  motors[1].setup(5);
-  motors[2].setup(6);
-  motors[3].setup(9);
+  motors[0].setup(9);
+  motors[1].setup(10);
+  motors[2].setup(11);
+  motors[3].setup(12);
+  motors[4].setup(13)
+
+  // setup pinouts for each soundboard
+  SB[0].setup(SB_TRANSDUCER_pins);
+  SB[1].setup(SB_SUB_pins);
 }
 
 void loop() {
@@ -60,7 +75,6 @@ void loop() {
     }
   else if (PROCESSING_DATA_VIS == false) {
       // printing straight to serial monitor for debugging
-
       Serial.println(vibrationMode);
   }
 
