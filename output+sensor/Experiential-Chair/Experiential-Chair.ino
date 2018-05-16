@@ -1,45 +1,56 @@
+#include <CapacitiveSensor.h>
 #include "IRLibAll.h"
 #include "motor.h"
 #include "soundboard.h"
+#include "capTouch.h"
 
 /* TODO
 -should recognise if serial connection is lost so it tries to establish
   connection again
 */
 
-/* VARIABLES TO SOMETIMES CHANGE */
-/// Dont forget counting starts at 0!!!
-const int total_motors = 4;
+/* VARIABLES TO SOMETIMES CHANGE *///////////////////////////////////////////
+  /// Dont forget counting starts at 0!!!
+  bool PROCESSING_DATA_VIS = false;
+  bool VIBRATION_MOTORS = false;
 
-const int total_soundBoards = 1;
+  const int total_motors = 4;
 
-// Soundboard pins starting with RST then T00 through to T10
-const int SB_TRANSDUCER_pins[] = {27,   29,31,33,35,37,39,41,43,45,47,49};
-const int SB_SUB_pins[] =        {44,   42,40,38,36,34,32,30,28,26,24,22};
+  const int total_soundBoards = 0;
 
-bool PROCESSING_DATA_VIS = false;
+  // Soundboard pins starting with RST then T00 through to T10
+  const int SB_TRANSDUCER_pins[] = {27,   29,31,33,35,37,39,41,43,45,47,49};
+  const int SB_SUB_pins[] =        {44,   42,40,38,36,34,32,30,28,26,24,22};
 
-const int IR_pin = 8;
+  string input = "capButtons";
+  const int IR_pin = 8;
 
-/* CONSTANT VARIABLES */
-// initiate motors passing each motor's pin
-VibrationMotor motors[total_motors];
+/* CONSTANT VARIABLES *//////////////////////////////////////////////////////
+  // initiate motors passing each motor's pin
+  VibrationMotor motors[total_motors];
 
-// Initiate SoundBoards
-SoundBoard SB[total_soundBoards];
+  // Initiate SoundBoards
+  SoundBoard SB[total_soundBoards];
 
-// IR remote set up
-IRrecvPCI myReceiver(IR_pin);
-IRdecode myDecoder;
+  // initiate capacitive touch buttons
+  // first number is send pin, second is recieve pin
+  CapacitiveSensor YogaButton = CapacitiveSensor(4,3);
+  CapacitiveSensor BurgerButton = CapacitiveSensor(2,1);
+  CapacitiveSensor SmokingButton = CapacitiveSensor(0,14);
+  CapacitiveSensor CancerButton = CapacitiveSensor(15,16);
 
-// Processing communication
-char processing_command;
+  // IR remote set up
+  IRrecvPCI myReceiver(IR_pin);
+  IRdecode myDecoder;
 
-// loop Variables
-unsigned long previousTime = 0;
-int pulseLength = 2000;
+  // Processing communication
+  char processing_command;
 
-int vibrationMode = 0;
+  // loop Variables
+  unsigned long previousTime = 0;
+  int pulseLength = 2000;
+
+  int vibrationMode = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -61,15 +72,31 @@ void setup() {
 
   // setup pinouts for each soundboard
   SB[0].setup(SB_TRANSDUCER_pins);
-  SB[1].setup(SB_SUB_pins);
+  // SB[1].setup(SB_SUB_pins);
+
+  // reset SoundBoards
+  SB[0].reset();
+  // SB[1].reset();
 }
 
 void loop() {
-    // IR reciever
-  if (myReceiver.getResults()) {
-    remoteHandler();
+  // input choice
+  if (input == "remote") {
+    if (myReceiver.getResults()) {
+      remoteHandler();
     }
+  } else if (input == "capButtons") {
+    capacitiveButtonHandler();
+  } else if (input == "remoteAndButtons") {
+    if (myReceiver.getResults()) {
+      remoteHandler();
+    }
+    capacitiveButtonHandler();
+  }
 
+
+
+  // processing data visualisation
   if (PROCESSING_DATA_VIS == true) {
     procesingHandler();
     }
@@ -188,6 +215,10 @@ void remoteHandler() {
         }
     }
     myReceiver.enableIRIn(); //Restart IR receiver
+}
+
+void capacitiveButtonHandler() {
+
 }
 
 // establish data contact with processing_command
