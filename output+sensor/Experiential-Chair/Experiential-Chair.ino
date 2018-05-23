@@ -34,10 +34,10 @@
 
   // initiate capacitive touch buttons
   // first number is send pin, second is recieve pin
-  CapacitiveSensor YogaButton = CapacitiveSensor(4,3);
-  CapacitiveSensor BurgerButton = CapacitiveSensor(2,1);
-  CapacitiveSensor SmokingButton = CapacitiveSensor(0,14);
-  CapacitiveSensor CancerButton = CapacitiveSensor(15,16);
+  CapacitiveSensor   CT1 = CapacitiveSensor(22,24);
+  CapacitiveSensor   CT2 = CapacitiveSensor(26,28);
+  CapacitiveSensor   CT3 = CapacitiveSensor(30,32);
+  CapacitiveSensor   CT4 = CapacitiveSensor(34,36);
 
   // IR remote set up
   IRrecvPCI myReceiver(IR_pin);

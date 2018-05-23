@@ -1,91 +1,82 @@
 #include <CapacitiveSensor.h>
 
-CapacitiveSensor   CapButton1 = CapacitiveSensor(6,5);        // 10M resistor between pins 4 & 2, pin 2 is sensor pin, add a wire and or foil if desired
-CapacitiveSensor   CapButton2 = CapacitiveSensor(4,3);        // 10M resistor between pins 4 & 6, pin 6 is sensor pin, add a wire and or foil
+// Capacitive buttons
+const int numberOfCapButtons = 3;
+CapacitiveSensor   CT0 = CapacitiveSensor(22,24);
+CapacitiveSensor   CT1 = CapacitiveSensor(26,28);
+CapacitiveSensor   CT2 = CapacitiveSensor(30,32);
+CapacitiveSensor   CT3 = CapacitiveSensor(34,36);
+bool buttonReading[numberOfCapButtons];
+bool buttonState[numberOfCapButtons];
+bool lastButtonState[numberOfCapButtons];
+unsigned long lastDebounceTime[numberOfCapButtons];
+unsigned long debounceDelay = 200;
+long rawButtInput[numberOfCapButtons];
 
-int SB_SUB[] = {42,40,38,36,34,32,30,28,26,24,22};
-int SB_SUB_RST = 44;
+// Sound board
+// Trigger pins for both soundboards
+// int SB_SUB[] = {42,40,38,36,34,32,30,28,26,24,22};
+// int SB_SUB_RST = 44;
 int SB_BONE[] = {29,31,33,35,37,39,41,43,45,47,49};
 int SB_BONE_RST = 27;
 
-const int numReadings = 20;
-
-long readings[numReadings];      // the readings from the analog input
-int readIndex = 0;              // the index of the current reading
-int total = 0;                  // the running total
-int average = 0;                // the average
-
-void setup()
-{
+void setup() {
    Serial.begin(9600);
 
+   // CAP BUTTONS
+   // ground plane to help capacitive buttons stability
+   pinMode(4, OUTPUT);
+   digitalWrite(4, LOW);
+   for (int x =0; x <= numberOfCapButtons; x++) {
+     lastButtonState[x] = false;
+   }
+
+
+   // SOUND OUTPUT
+   // set all soundboard pins as outputs
    pinMode(SB_BONE_RST, OUTPUT);
    for (int x=0; x<11; x++) {
      pinMode(SB_BONE[x], OUTPUT);
-   }
-
-   for (int x=0; x<11; x++) {
      digitalWrite(SB_BONE[x], HIGH);
    }
-
-   // initialize all the readings to 0:
-   for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-     readings[thisReading] = 0;
-   }
+   soundTriggerReset();
 }
 
-void loop()
-{
-    long start = millis();
-    long total1 =  CapButton1.capacitiveSensor(30);
-    long total2 =  CapButton2.capacitiveSensor(30);
+void loop() {
 
-    // subtract the last reading:
-    total = total - readings[readIndex];
-    // read from the sensor:
-    readings[readIndex] = CapButton1.capacitiveSensor(30);
-    // add the reading to the total:
-    total = total + readings[readIndex];
-    // advance to the next position in the array:
-    readIndex = readIndex + 1;
+    // read capcaitive touch buttons
+    rawButtInput[0] =  CT0.capacitiveSensor(100);
+    rawButtInput[1] =  CT1.capacitiveSensor(100);
+    rawButtInput[2] =  CT2.capacitiveSensor(100);
+    rawButtInput[3] =  CT3.capacitiveSensor(100);
 
-    // if we're at the end of the array...
-    if (readIndex >= numReadings) {
-      // ...wrap around to the beginning:
-      readIndex = 0;
+    for (int button = 0; button <= numberOfCapButtons; button++) {
+      if (rawButtInput[button] > 1400) {
+        soundTrigger(button);
+        // debounceButton(button);
+      }
     }
 
-    // calculate the average:
-    average = total / numReadings;
+    delay(10);        // arbitrary delay to limit data to serial port
+}
+void debounceButton(int button) {
 
-
-    if (total1 > 200) {
-      soundTrigger(1);
-      Serial.println("1 triggered");
-    } else if (total2 > 200) {
-      soundTrigger(2);
-      Serial.println("2 triggered");
-    }
-    delay(10);                             // arbitrary delay to limit data to serial port
+    Serial.print("button: ");
+    Serial.println(button);
+    delay(1000);
 }
 
 void soundTrigger(int soundNumber) {
-  soundTriggerReset();
-
-  digitalWrite(SB_BONE_RST, HIGH);
-
-  for (int x=0; x<11; x++) {
-    if (x != soundNumber) {
-      digitalWrite(SB_BONE[x], HIGH);
-    } else if (x == soundNumber) {
-      digitalWrite(SB_BONE[x], LOW);
-    }
-  }
+  // turn off last pin and trigger passed sound
+  digitalWrite(SB_BONE[soundNumber], LOW);
+  delay(300);
+  digitalWrite(SB_BONE[soundNumber], HIGH);
+  delay(1000); // for debouncing
 }
 
 void soundTriggerReset() {
-  for (int x=0; x<11; x++) {
-    digitalWrite(SB_BONE[x], HIGH);
-  }
+  // turn off last pin and trigger RESET pin
   digitalWrite(SB_BONE_RST, LOW);
+  delay(300);
+  digitalWrite(SB_BONE_RST, HIGH);
 }
