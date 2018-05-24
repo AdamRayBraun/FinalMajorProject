@@ -1,7 +1,7 @@
 #include <CapacitiveSensor.h>
-#include "IRLibAll.h"
 #include "motor.h"
 #include "motor_array.h"
+#include "CapButton.h"
 
 /* TODO
 -should recognise if serial connection is lost so it tries to establish
@@ -27,14 +27,10 @@
   MotorSequence  *motorSequence;
 
 // capacitive touch buttons
-  // first number is send pin, second is recieve pin
-  CapacitiveSensor   CT0 = CapacitiveSensor(22,24);
-  CapacitiveSensor   CT1 = CapacitiveSensor(26,28);
-  CapacitiveSensor   CT2 = CapacitiveSensor(30,32);
-  CapacitiveSensor   CT3 = CapacitiveSensor(34,36);
-  long rawButtInput[numberOfCapButtons];
+  CapButton *capacitiveButtons[numberOfCapButtons];
+  CapacitiveSensor *capacitiveSensor;
 
-  // Processing communication
+// Processing communication
   char processing_command;
 
 void setup() {
@@ -58,9 +54,11 @@ void setup() {
   }
 
   // Capacitive touch buttons set up
-  // ground plane to help capacitive buttons stability
-  pinMode(4, OUTPUT);
-  digitalWrite(4, LOW);
+  capacitiveSensor = new CapacitiveSensor();
+  capacitiveButtons[0] = new CapButton(capacitiveSensor, 22, 24, 1400);
+  capacitiveButtons[1] = new CapButton(capacitiveSensor, 26, 28, 1400);
+  capacitiveButtons[2] = new CapButton(capacitiveSensor, 30, 32, 1400);
+  capacitiveButtons[3] = new CapButton(capacitiveSensor, 34, 36, 1400);
 
   //Sound board set up
   // set all soundboard pins as outputs
@@ -87,54 +85,24 @@ void loop() {
     motors[x]->Sequence();
   }
 
-  // capacitive touch button input
-  rawButtInput[0] =  CT0.capacitiveSensor(100);
-  rawButtInput[1] =  CT1.capacitiveSensor(100);
-  rawButtInput[2] =  CT2.capacitiveSensor(100);
-  rawButtInput[3] =  CT3.capacitiveSensor(100);
-
   for (int button = 0; button <= numberOfCapButtons; button++) {
-    if (rawButtInput[button] > Capacitive_threshold) {
-      soundTrigger(button);
+    if (capacitiveButtons[button]->CapacitiveSensing() == true) {
+      scenarioTrigger(button);
     }
   }
 
   delay(10);        // arbitrary delay to limit data to serial port
 }
 
-
-
-void shortPositive() {
+void scenarioTrigger(int scenario) {
   for (int x = 0; x < total_motors; x++) {
-    motors[x]->SequenceFire(0);
+    motors[x]->SequenceFire(scenario);
   }
 
-}
-
-void shortNegative() {
-  for (int x = 0; x < total_motors; x++) {
-    motors[x]->SequenceFire(1);
-  }
-}
-
-void longPositive() {
-  for (int x = 0; x < total_motors; x++) {
-    motors[x]->SequenceFire(2);
-  }
-}
-
-void longNegative() {
-  for (int x = 0; x < total_motors; x++) {
-    motors[x]->SequenceFire(3);
-  }
-}
-
-void soundTrigger(int soundNumber) {
   // turn off last pin and trigger passed sound
-  digitalWrite(SB_BONE[soundNumber], LOW);
+  digitalWrite(SB_BONE[scenario], LOW);
   delay(300);
-  digitalWrite(SB_BONE[soundNumber], HIGH);
-  delay(1000); // for debouncing
+  digitalWrite(SB_BONE[scenario], HIGH);
 }
 
 void soundTriggerReset() {
