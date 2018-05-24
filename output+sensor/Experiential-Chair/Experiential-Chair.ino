@@ -1,8 +1,7 @@
 #include <CapacitiveSensor.h>
 #include "IRLibAll.h"
 #include "motor.h"
-#include "soundboard.h"
-#include "capTouch.h"
+#include "motor_array.h"
 
 /* TODO
 -should recognise if serial connection is lost so it tries to establish
@@ -10,47 +9,33 @@
 */
 
 /* VARIABLES TO SOMETIMES CHANGE *///////////////////////////////////////////
-  /// Dont forget counting starts at 0!!!
   bool PROCESSING_DATA_VIS = false;
-  bool VIBRATION_MOTORS = false;
+  bool VIBRATION_MOTORS = true;
 
   const int total_motors = 4;
-
-  const int total_soundBoards = 0;
+  const int numberOfCapButtons = 4;
+  const int Capacitive_threshold = 1400;
 
   // Soundboard pins starting with RST then T00 through to T10
-  const int SB_TRANSDUCER_pins[] = {27,   29,31,33,35,37,39,41,43,45,47,49};
-  const int SB_SUB_pins[] =        {44,   42,40,38,36,34,32,30,28,26,24,22};
-
-  string input = "capButtons";
-  const int IR_pin = 8;
+  int SB_BONE[] = {29,31,33,35,37,39,41,43,45,47,49};
+  int SB_BONE_RST = 27;
 
 /* CONSTANT VARIABLES *//////////////////////////////////////////////////////
-  // initiate motors passing each motor's pin
-  VibrationMotor motors[total_motors];
 
-  // Initiate SoundBoards
-  SoundBoard SB[total_soundBoards];
+// Vibration motors
+  VibrationMotor *motors[total_motors];
+  MotorSequence  *motorSequence;
 
-  // initiate capacitive touch buttons
+// capacitive touch buttons
   // first number is send pin, second is recieve pin
-  CapacitiveSensor   CT1 = CapacitiveSensor(22,24);
-  CapacitiveSensor   CT2 = CapacitiveSensor(26,28);
-  CapacitiveSensor   CT3 = CapacitiveSensor(30,32);
-  CapacitiveSensor   CT4 = CapacitiveSensor(34,36);
-
-  // IR remote set up
-  IRrecvPCI myReceiver(IR_pin);
-  IRdecode myDecoder;
+  CapacitiveSensor   CT0 = CapacitiveSensor(22,24);
+  CapacitiveSensor   CT1 = CapacitiveSensor(26,28);
+  CapacitiveSensor   CT2 = CapacitiveSensor(30,32);
+  CapacitiveSensor   CT3 = CapacitiveSensor(34,36);
+  long rawButtInput[numberOfCapButtons];
 
   // Processing communication
   char processing_command;
-
-  // loop Variables
-  unsigned long previousTime = 0;
-  int pulseLength = 2000;
-
-  int vibrationMode = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -61,112 +46,102 @@ void setup() {
       establishContact();
   }
 
-  myReceiver.enableIRIn(); // Start the receiver
-
-  // setup pinouts on each motor object
-  motors[0].setup(9);
-  motors[1].setup(10);
-  motors[2].setup(11);
-  motors[3].setup(12);
-  motors[4].setup(13)
-
-  // setup pinouts for each soundboard
-  SB[0].setup(SB_TRANSDUCER_pins);
-  // SB[1].setup(SB_SUB_pins);
-
-  // reset SoundBoards
-  SB[0].reset();
-  // SB[1].reset();
-}
-
-void loop() {
-  // input choice
-  if (input == "remote") {
-    if (myReceiver.getResults()) {
-      remoteHandler();
+  // vibration motor set up
+  motorSequence = new MotorSequence();
+  for (int x =0; x < total_motors; x++) {
+    if (x == 0) {
+      motors[x] = new VibrationMotor(motorSequence, 9+x, true);
     }
-  } else if (input == "capButtons") {
-    capacitiveButtonHandler();
-  } else if (input == "remoteAndButtons") {
-    if (myReceiver.getResults()) {
-      remoteHandler();
+    else {
+      motors[x] = new VibrationMotor(motorSequence, 9+x, false);
     }
-    capacitiveButtonHandler();
   }
 
+  // Capacitive touch buttons set up
+  // ground plane to help capacitive buttons stability
+  pinMode(4, OUTPUT);
+  digitalWrite(4, LOW);
+
+  //Sound board set up
+  // set all soundboard pins as outputs
+  pinMode(SB_BONE_RST, OUTPUT);
+  for (int x=0; x<11; x++) {
+    pinMode(SB_BONE[x], OUTPUT);
+    digitalWrite(SB_BONE[x], HIGH);
+  }
+  soundTriggerReset();
+}
 
 
+
+void loop() {
   // processing data visualisation
   if (PROCESSING_DATA_VIS == true) {
     procesingHandler();
     }
   else if (PROCESSING_DATA_VIS == false) {
-      // printing straight to serial monitor for debugging
-      Serial.println(vibrationMode);
   }
 
-  if (vibrationMode != 0) {
-      vibrationHandler();
+  // Motor sequecncing
+  for (int x = 0; x < total_motors; x++) {
+    motors[x]->Sequence();
+  }
+
+  // capacitive touch button input
+  rawButtInput[0] =  CT0.capacitiveSensor(100);
+  rawButtInput[1] =  CT1.capacitiveSensor(100);
+  rawButtInput[2] =  CT2.capacitiveSensor(100);
+  rawButtInput[3] =  CT3.capacitiveSensor(100);
+
+  for (int button = 0; button <= numberOfCapButtons; button++) {
+    if (rawButtInput[button] > Capacitive_threshold) {
+      soundTrigger(button);
     }
+  }
+
+  delay(10);        // arbitrary delay to limit data to serial port
 }
+
 
 
 void shortPositive() {
-    if (PROCESSING_DATA_VIS == false) {
-        Serial.println("1 pressed");
-    }
-    for (int x = 0; x <= total_motors; x++) {
-        motors[x].Pulse(153,2000);
-    }
+  for (int x = 0; x < total_motors; x++) {
+    motors[x]->SequenceFire(0);
+  }
+
 }
 
 void shortNegative() {
-    if (PROCESSING_DATA_VIS == false) {
-        Serial.println("2 pressed");
-    }
+  for (int x = 0; x < total_motors; x++) {
+    motors[x]->SequenceFire(1);
+  }
 }
 
 void longPositive() {
-    if (PROCESSING_DATA_VIS == false) {
-        Serial.println("3 pressed");
-    }
+  for (int x = 0; x < total_motors; x++) {
+    motors[x]->SequenceFire(2);
+  }
 }
 
 void longNegative() {
-    if (PROCESSING_DATA_VIS == false) {
-        Serial.println("4 pressed");
-    }
+  for (int x = 0; x < total_motors; x++) {
+    motors[x]->SequenceFire(3);
+  }
 }
 
-// handles different looping logic for each vibration
-void vibrationHandler() {
-    if (vibrationMode == 1) {
-        for (int x = 0; x <= total_motors; x++) {
-            motors[x].update();
-        }
-        // vibrationMode = 0;
-    }
-    else if (vibrationMode == 2) {
-        for (int x = 0; x <= total_motors; x++) {
-            if (motors[x].strength > 0) {
-                motors[x].ToggleStrength(0);
+void soundTrigger(int soundNumber) {
+  // turn off last pin and trigger passed sound
+  digitalWrite(SB_BONE[soundNumber], LOW);
+  delay(300);
+  digitalWrite(SB_BONE[soundNumber], HIGH);
+  delay(1000); // for debouncing
+}
 
-                int next_motor = x + 1;
-                if (next_motor >= total_motors){
-                    next_motor -= total_motors;
-                }
-                motors[next_motor].ToggleStrength(153);
-
-                break;
-            }
-        }
-    }
-    else if (vibrationMode == 4) {
-        for (int x = 0; x <= total_motors; x++) {
-            motors[x].ToggleStrength(0);
-        }
-        vibrationMode = 0;
-    }
+void soundTriggerReset() {
+  // turn off last pin and trigger RESET pin
+  digitalWrite(SB_BONE_RST, LOW);
+  delay(300);
+  digitalWrite(SB_BONE_RST, HIGH);
 }
 
 void procesingHandler() {
@@ -181,44 +156,10 @@ void procesingHandler() {
     }
     // else send motor data
     else {
-        for (int x = 0; x <= total_motors; x++) {
-            Serial.print(motors[x].strength);
-            Serial.print(",");
-        }
-        Serial.println(vibrationMode);
+        Serial.println("processing info");
 
         delay(50);
     }
-}
-
-void remoteHandler() {
-    myDecoder.decode();           //Decode it
-    if (myDecoder.protocolNum == NEC) {
-        switch(myDecoder.value) {
-            case 0xFF30CF:
-                // button 1 on remote
-                vibrationMode = 1;
-                shortPositive();
-                break;
-            case 0xFF18E7:
-                // button 2 on remote
-                vibrationMode = 2;
-                break;
-            case 0xFF7A85:
-                // button 3 on remote
-                vibrationMode = 3;
-                break;
-            case 0xFF10EF:
-                // button 4 on remote
-                vibrationMode = 4;
-                break;
-        }
-    }
-    myReceiver.enableIRIn(); //Restart IR receiver
-}
-
-void capacitiveButtonHandler() {
-
 }
 
 // establish data contact with processing_command

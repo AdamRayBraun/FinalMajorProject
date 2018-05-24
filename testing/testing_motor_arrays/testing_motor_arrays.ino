@@ -28,9 +28,7 @@ void setup() {
 
 }
 
-
 void loop() {
-
   for (int x = 0; x < total_motors; x++) {
     motors[x]->Sequence();
   }

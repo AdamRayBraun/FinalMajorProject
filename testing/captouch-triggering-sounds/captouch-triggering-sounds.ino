@@ -1,16 +1,11 @@
 #include <CapacitiveSensor.h>
 
 // Capacitive buttons
-const int numberOfCapButtons = 3;
+const int numberOfCapButtons = 4;
 CapacitiveSensor   CT0 = CapacitiveSensor(22,24);
 CapacitiveSensor   CT1 = CapacitiveSensor(26,28);
 CapacitiveSensor   CT2 = CapacitiveSensor(30,32);
 CapacitiveSensor   CT3 = CapacitiveSensor(34,36);
-bool buttonReading[numberOfCapButtons];
-bool buttonState[numberOfCapButtons];
-bool lastButtonState[numberOfCapButtons];
-unsigned long lastDebounceTime[numberOfCapButtons];
-unsigned long debounceDelay = 200;
 long rawButtInput[numberOfCapButtons];
 
 // Sound board
@@ -27,9 +22,6 @@ void setup() {
    // ground plane to help capacitive buttons stability
    pinMode(4, OUTPUT);
    digitalWrite(4, LOW);
-   for (int x =0; x <= numberOfCapButtons; x++) {
-     lastButtonState[x] = false;
-   }
 
 
    // SOUND OUTPUT
