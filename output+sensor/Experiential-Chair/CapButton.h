@@ -14,7 +14,6 @@ class CapButton {
       long rawInput;
       int threshold;
       CapacitiveSensor *capacitive_sensor;
-
       // debouncing variables
       bool reading = false;
       bool buttonState = false;

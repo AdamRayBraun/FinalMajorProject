@@ -9,9 +9,6 @@ CapacitiveSensor   CT3 = CapacitiveSensor(34,36);
 long rawButtInput[numberOfCapButtons];
 
 // Sound board
-// Trigger pins for both soundboards
-// int SB_SUB[] = {42,40,38,36,34,32,30,28,26,24,22};
-// int SB_SUB_RST = 44;
 int SB_BONE[] = {29,31,33,35,37,39,41,43,45,47,49};
 int SB_BONE_RST = 27;
 
@@ -59,16 +56,16 @@ void debounceButton(int button) {
 }
 
 void soundTrigger(int soundNumber) {
-  // turn off last pin and trigger passed sound
-  digitalWrite(SB_BONE[soundNumber], LOW);
-  delay(300);
-  digitalWrite(SB_BONE[soundNumber], HIGH);
-  delay(1000); // for debouncing
+    // turn off last pin and trigger passed sound
+    digitalWrite(SB_BONE[soundNumber], LOW);
+    delay(300);
+    digitalWrite(SB_BONE[soundNumber], HIGH);
+    delay(1000); // for debouncing
 }
 
 void soundTriggerReset() {
-  // turn off last pin and trigger RESET pin
-  digitalWrite(SB_BONE_RST, LOW);
-  delay(300);
-  digitalWrite(SB_BONE_RST, HIGH);
+    // turn off last pin and trigger RESET pin
+    digitalWrite(SB_BONE_RST, LOW);
+    delay(300);
+    digitalWrite(SB_BONE_RST, HIGH);
 }

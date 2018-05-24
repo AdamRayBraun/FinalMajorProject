@@ -3,11 +3,13 @@
 #include <Arduino.h>
 
 CapButton::CapButton(CapacitiveSensor *capacitiveSensor, int sendPin, int recievePin, int threshold) {
-    this->capacitive_sensor = capacitiveSensor;
     this->threshold = threshold;
+    this->capacitive_sensor = capacitiveSensor;
+    capacitive_sensor->CapacitiveSensor(sendPin,recievePin);
 }
 
 bool CapButton::CapacitiveSensing() {
+    this->rawInput = this->capacitive_sensor->capacitiveSensor(100);
 
     if (this->rawInput > this->threshold) {
       this->reading = true;
