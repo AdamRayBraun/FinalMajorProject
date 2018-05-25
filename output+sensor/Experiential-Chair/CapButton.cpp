@@ -1,16 +1,13 @@
-#include <CapacitiveSensor.h>
 #include "CapButton.h"
 #include <Arduino.h>
 
-CapButton::CapButton(CapacitiveSensor capacitiveSensor, int sendPin, int recievePin, int threshold)
-  : capacitiveSensor(capacitiveSensor),
-    threshold(threshold),
-    sendPin(sendPin)
+CapButton::CapButton(int threshold)
+  : threshold(threshold)
 { }
 
 void CapButton::Service(long rawInput) {
-#if 1
-    this->rawInput = this->capacitiveSensor.capacitiveSensor(100);
+
+    this->rawInput = rawInput;
 
     if (this->rawInput > this->threshold) {
       this->reading = true;
@@ -25,12 +22,9 @@ void CapButton::Service(long rawInput) {
     if ((millis() - this->lastDebounceTime) > this->debounceDelay) {
         if (this->reading != this->buttonState) {
           this->buttonState = this->reading;
-          Serial.print("BUTTON PRESSED: ");
-          Serial.println(this->sendPin);
         }
     }
     this->lastReadingState = this->reading;
-#endif
 }
 
 bool CapButton::buttonValue() {

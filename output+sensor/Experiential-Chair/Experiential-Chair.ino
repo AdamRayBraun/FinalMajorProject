@@ -1,3 +1,4 @@
+#include <CapacitiveSensor.h>
 #include "motor.h"
 #include "motor_array.h"
 #include "CapButton.h"
@@ -27,10 +28,7 @@
 
 // capacitive touch buttons
   static CapButton *capacitiveButtons[numberOfCapButtons];
-  static CapacitiveSensor *capacitiveSensor;
-
-// Processing communication
-  char processing_command;
+  long ButtonReadings[numberOfCapButtons];
 
   CapacitiveSensor   CT0 = CapacitiveSensor(22,24);
   CapacitiveSensor   CT1 = CapacitiveSensor(26,28);
@@ -39,6 +37,8 @@
 
 // CapacitiveSensor CT0(22, 24);
 
+// Processing communication
+char processing_command;
 
 void setup() {
   Serial.begin(9600);
@@ -53,7 +53,7 @@ void setup() {
   motorSequence = new MotorSequence();
   for (int x =0; x < total_motors; x++) {
     if (x == 0) {
-      motors[x] = new VibrationMotor(motorSequence, 9+x, true);
+      motors[x] = new VibrationMotor(motorSequence, 9+x, false);
     }
     else {
       motors[x] = new VibrationMotor(motorSequence, 9+x, false);
@@ -62,10 +62,11 @@ void setup() {
 
 
   // Capacitive touch buttons set up
-  capacitiveButtons[0] = new CapButton(CT0, 22, 24, 1400);
-  capacitiveButtons[1] = new CapButton(CT1, 26, 28, 1400);
-  capacitiveButtons[2] = new CapButton(CT2, 30, 32, 1400);
-  capacitiveButtons[3] = new CapButton(CT3, 34, 36, 1400);
+  capacitiveButtons[0] = new CapButton(1400);
+  capacitiveButtons[1] = new CapButton(1400);
+  capacitiveButtons[2] = new CapButton(1400);
+  capacitiveButtons[3] = new CapButton(1400);
+
 
   //Sound board set up
   // set all soundboard pins as outputs
@@ -92,12 +93,16 @@ void loop() {
     motors[x]->Sequence();
   }
 
+  // capacitive touch buttons
+  ButtonReadings[0] = CT0.capacitiveSensor(100);
+  ButtonReadings[1] = CT1.capacitiveSensor(100);
+  ButtonReadings[2] = CT2.capacitiveSensor(100);
+  ButtonReadings[3] = CT3.capacitiveSensor(100);
+
   for (int button = 0; button < numberOfCapButtons; button++) {
-    long v = CT0.capacitiveSensor(100);
-    capacitiveButtons[button]->Service(v);
+    capacitiveButtons[button]->Service(ButtonReadings[button]);
     if (capacitiveButtons[button]->buttonValue() == true) {
-      // scenarioTrigger(button);
-      Serial.println(button);
+      scenarioTrigger(button);
     }
   }
 
@@ -108,11 +113,13 @@ void scenarioTrigger(int scenario) {
   for (int x = 0; x < total_motors; x++) {
     motors[x]->SequenceFire(scenario);
   }
-
   // turn off last pin and trigger passed sound
   digitalWrite(SB_BONE[scenario], LOW);
   delay(300);
   digitalWrite(SB_BONE[scenario], HIGH);
+
+  Serial.print("Scenario triggered: ");
+  Serial.println(scenario);
 }
 
 void soundTriggerReset() {
