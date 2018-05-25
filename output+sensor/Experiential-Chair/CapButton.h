@@ -8,11 +8,13 @@
 
 class CapButton {
     public:
-      CapButton(int sendPin, int recievePin, int threshold);
+      CapButton(CapacitiveSensor capacitiveSensor, int sendPin, int recievePin, int threshold);
       void Service(long rawInput);
       bool buttonValue();
 
     private:
+      CapacitiveSensor capacitiveSensor;
+      
       long rawInput;
       int threshold;
       int sendPin;

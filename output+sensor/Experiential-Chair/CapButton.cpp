@@ -2,14 +2,15 @@
 #include "CapButton.h"
 #include <Arduino.h>
 
-CapButton::CapButton(int sendPin, int recievePin, int threshold)
-  : threshold(threshold),
+CapButton::CapButton(CapacitiveSensor capacitiveSensor, int sendPin, int recievePin, int threshold)
+  : capacitiveSensor(capacitiveSensor),
+    threshold(threshold),
     sendPin(sendPin)
 { }
 
 void CapButton::Service(long rawInput) {
 #if 1
-    this->rawInput = rawInput; //this->capacitive_sensor.capacitiveSensor(100);
+    this->rawInput = this->capacitiveSensor.capacitiveSensor(100);
 
     if (this->rawInput > this->threshold) {
       this->reading = true;
