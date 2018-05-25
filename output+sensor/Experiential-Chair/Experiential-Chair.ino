@@ -62,10 +62,10 @@ void setup() {
 
 
   // Capacitive touch buttons set up
-  capacitiveButtons[0] = new CapButton(22, 24, 1400);
-  capacitiveButtons[1] = new CapButton(26, 28, 1400);
-  capacitiveButtons[2] = new CapButton(30, 32, 1400);
-  capacitiveButtons[3] = new CapButton(34, 36, 1400);
+  capacitiveButtons[0] = new CapButton(CT0, 22, 24, 1400);
+  capacitiveButtons[1] = new CapButton(CT1, 26, 28, 1400);
+  capacitiveButtons[2] = new CapButton(CT2, 30, 32, 1400);
+  capacitiveButtons[3] = new CapButton(CT3, 34, 36, 1400);
 
   //Sound board set up
   // set all soundboard pins as outputs
@@ -92,7 +92,7 @@ void loop() {
     motors[x]->Sequence();
   }
 
-  for (int button = 0; button <= numberOfCapButtons; button++) {
+  for (int button = 0; button < numberOfCapButtons; button++) {
     long v = CT0.capacitiveSensor(100);
     capacitiveButtons[button]->Service(v);
     if (capacitiveButtons[button]->buttonValue() == true) {
