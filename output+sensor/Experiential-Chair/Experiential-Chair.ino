@@ -1,4 +1,3 @@
-#include <CapacitiveSensor.h>
 #include "motor.h"
 #include "motor_array.h"
 #include "CapButton.h"
@@ -23,15 +22,23 @@
 /* CONSTANT VARIABLES *//////////////////////////////////////////////////////
 
 // Vibration motors
-  VibrationMotor *motors[total_motors];
-  MotorSequence  *motorSequence;
+  static VibrationMotor *motors[total_motors];
+  static MotorSequence  *motorSequence;
 
 // capacitive touch buttons
-  CapButton *capacitiveButtons[numberOfCapButtons];
-  CapacitiveSensor *capacitiveSensor;
+  static CapButton *capacitiveButtons[numberOfCapButtons];
+  static CapacitiveSensor *capacitiveSensor;
 
 // Processing communication
   char processing_command;
+
+  CapacitiveSensor   CT0 = CapacitiveSensor(22,24);
+  CapacitiveSensor   CT1 = CapacitiveSensor(26,28);
+  CapacitiveSensor   CT2 = CapacitiveSensor(30,32);
+  CapacitiveSensor   CT3 = CapacitiveSensor(34,36);
+
+// CapacitiveSensor CT0(22, 24);
+
 
 void setup() {
   Serial.begin(9600);
@@ -53,12 +60,12 @@ void setup() {
     }
   }
 
+
   // Capacitive touch buttons set up
-  capacitiveSensor = new CapacitiveSensor();
-  capacitiveButtons[0] = new CapButton(capacitiveSensor, 22, 24, 1400);
-  capacitiveButtons[1] = new CapButton(capacitiveSensor, 26, 28, 1400);
-  capacitiveButtons[2] = new CapButton(capacitiveSensor, 30, 32, 1400);
-  capacitiveButtons[3] = new CapButton(capacitiveSensor, 34, 36, 1400);
+  capacitiveButtons[0] = new CapButton(22, 24, 1400);
+  capacitiveButtons[1] = new CapButton(26, 28, 1400);
+  capacitiveButtons[2] = new CapButton(30, 32, 1400);
+  capacitiveButtons[3] = new CapButton(34, 36, 1400);
 
   //Sound board set up
   // set all soundboard pins as outputs
@@ -86,8 +93,11 @@ void loop() {
   }
 
   for (int button = 0; button <= numberOfCapButtons; button++) {
-    if (capacitiveButtons[button]->CapacitiveSensing() == true) {
-      scenarioTrigger(button);
+    long v = CT0.capacitiveSensor(100);
+    capacitiveButtons[button]->Service(v);
+    if (capacitiveButtons[button]->buttonValue() == true) {
+      // scenarioTrigger(button);
+      Serial.println(button);
     }
   }
 

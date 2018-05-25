@@ -2,14 +2,14 @@
 #include "CapButton.h"
 #include <Arduino.h>
 
-CapButton::CapButton(CapacitiveSensor *capacitiveSensor, int sendPin, int recievePin, int threshold) {
-    this->threshold = threshold;
-    this->capacitive_sensor = capacitiveSensor;
-    capacitive_sensor->CapacitiveSensor(sendPin,recievePin);
-}
+CapButton::CapButton(int sendPin, int recievePin, int threshold)
+  : threshold(threshold),
+    sendPin(sendPin)
+{ }
 
-bool CapButton::CapacitiveSensing() {
-    this->rawInput = this->capacitive_sensor->capacitiveSensor(100);
+void CapButton::Service(long rawInput) {
+#if 1
+    this->rawInput = rawInput; //this->capacitive_sensor.capacitiveSensor(100);
 
     if (this->rawInput > this->threshold) {
       this->reading = true;
@@ -17,19 +17,21 @@ bool CapButton::CapacitiveSensing() {
       this->reading = false;
     }
 
-    if (this->reading != this->lastButtonState) {
+    if (this->reading != this->lastReadingState) {
       this->lastDebounceTime = millis();
     }
 
     if ((millis() - this->lastDebounceTime) > this->debounceDelay) {
-      if (this->reading != this->buttonState) {
-        this->buttonState = this->reading;
-        Serial.print("BUTTON PRESSED");
-      }
+        if (this->reading != this->buttonState) {
+          this->buttonState = this->reading;
+          Serial.print("BUTTON PRESSED: ");
+          Serial.println(this->sendPin);
+        }
     }
+    this->lastReadingState = this->reading;
+#endif
+}
 
+bool CapButton::buttonValue() {
     return(this->buttonState);
-
-    this->lastButtonState = this->reading;
-
 }

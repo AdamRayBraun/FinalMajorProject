@@ -2,12 +2,15 @@
 #include "motor_array.h"
 #include <Arduino.h>
 
-VibrationMotor::VibrationMotor(MotorSequence *motorSequence, int pin, bool debug) {
+VibrationMotor::VibrationMotor(MotorSequence *motorSequence, int pin, bool debug)
+  : MotorPin(pin),
+    motor_sequence(motorSequence),
+    debugPrinting(debug),
+    sequenceNumber(0),
+    startTime(0L)
+ {
     pinMode(pin, OUTPUT);
-    this->MotorPin = pin;
-    this->motor_sequence = motorSequence;
-    this->debugPrinting = debug;
-}
+ }
 
 void VibrationMotor::SequenceFire(int sequenceNumber) {
    this->startTime = millis();
@@ -22,7 +25,7 @@ void VibrationMotor::Sequence() {
    analogWrite(this->MotorPin, vibrationStrength);
 
    if (this->debugPrinting == true) {
-     Serial.print("Motor Number: ");
+     Serial.print("MOTOR Number: ");
      Serial.print("\t");
      Serial.print(this->MotorPin);
      Serial.print("  Sequence: ");

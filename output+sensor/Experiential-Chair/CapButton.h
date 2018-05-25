@@ -3,21 +3,23 @@
 #ifndef CapButton_h
 #define CapButton_h
 
+#include <CapacitiveSensor.h>
 #include <Arduino.h>
 
 class CapButton {
     public:
-      CapButton(CapacitiveSensor *capacitiveSensor, int sendPin, int recievePin, int threshold);
-      bool CapacitiveSensing();
+      CapButton(int sendPin, int recievePin, int threshold);
+      void Service(long rawInput);
+      bool buttonValue();
 
     private:
       long rawInput;
       int threshold;
-      CapacitiveSensor *capacitive_sensor;
+      int sendPin;
       // debouncing variables
       bool reading = false;
       bool buttonState = false;
-      bool lastButtonState = false;
+      bool lastReadingState = false;
       unsigned long lastDebounceTime = 0;
       unsigned long debounceDelay = 100;
 };
