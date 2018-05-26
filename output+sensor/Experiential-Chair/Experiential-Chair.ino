@@ -11,6 +11,7 @@
 /* VARIABLES TO SOMETIMES CHANGE *///////////////////////////////////////////
   bool PROCESSING_DATA_VIS = false;
   bool VIBRATION_MOTORS = true;
+  bool SOUND_OUTPUT = true;
 
   const int total_motors = 4;
   const int numberOfCapButtons = 4;
@@ -67,7 +68,6 @@ void setup() {
   capacitiveButtons[2] = new CapButton(1400);
   capacitiveButtons[3] = new CapButton(1400);
 
-
   //Sound board set up
   // set all soundboard pins as outputs
   pinMode(SB_BONE_RST, OUTPUT);
@@ -77,8 +77,6 @@ void setup() {
   }
   soundTriggerReset();
 }
-
-
 
 void loop() {
   // processing data visualisation
@@ -110,13 +108,19 @@ void loop() {
 }
 
 void scenarioTrigger(int scenario) {
-  for (int x = 0; x < total_motors; x++) {
-    motors[x]->SequenceFire(scenario);
+  if (VIBRATION_MOTORS == true) {
+    for (int x = 0; x < total_motors; x++) {
+      motors[x]->SequenceFire(scenario);
+    }
   }
-  // turn off last pin and trigger passed sound
-  digitalWrite(SB_BONE[scenario], LOW);
-  delay(300);
-  digitalWrite(SB_BONE[scenario], HIGH);
+
+  if (SOUND_OUTPUT == true) {
+    // turn off last pin and trigger passed sound
+    digitalWrite(SB_BONE[scenario], LOW);
+    delay(300);
+    digitalWrite(SB_BONE[scenario], HIGH);
+
+  }
 
   Serial.print("Scenario triggered: ");
   Serial.println(scenario);
